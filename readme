@@ -1,0 +1,15 @@
+The core of SIP E2E connector is CloudCommEngine. It uses the IMSTransport module to
+communicate with the IMS server in the cloud via the SIP protocol. On the one hand,it 
+wraps the local AllJoyn messages into SIP messages and sends the SIP messages to the 
+IMS server so that those local AllJoyn interfaces (i.e., methods, properties, and signals) 
+may be accessed and used by the cloud and remote AllJoyn devices and applications. On 
+the other hand, when it receives SIP messages from the IMS server, it unwraps the remote 
+AllJoyn messages from the SIP messages and instantiate the proxy bus objects so that 
+local AllJoyn devices/applications may access and use the AllJoyn interfaces provided 
+by the cloud and remote AllJoyn devices and applications.
+
+TODOs
+1. Currently the IMSTransport module depends on Doubango and this dependency will
+be removed before the release.
+2. Will use scons to add the build option on other platforms like Linux.
+3. Will modify the connector to be compatible with the gateway agent framework.
