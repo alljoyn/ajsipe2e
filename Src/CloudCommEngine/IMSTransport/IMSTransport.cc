@@ -31,8 +31,8 @@
 
 #include <mutex>
 
-#include <SipStack.h>
-#include <SipSession.h>
+#include "CloudCommEngine/IMSTransport/Sofia/SipStack.h"
+#include "CloudCommEngine/IMSTransport/Sofia/SipSession.h"
 
 #if defined( _MSC_VER )
 #include <direct.h>        // _getcwd
@@ -55,7 +55,7 @@ static IMSTransport* imsIns = new IMSTransport();
 
 
 IMSTransport::IMSTransport()
-    : stack(NULL), sipCB(NULL), imsTransportStatus(gwConsts::IMS_TRANSPORT_STATUS_UNREGISTERED),
+    : stack(NULL), stackMainLoopThread(NULL), sipCB(NULL), imsTransportStatus(gwConsts::IMS_TRANSPORT_STATUS_UNREGISTERED),
     realm(gwConsts::DEFAULT_REALM), pcscfPort(gwConsts::DEFAULT_PCSCF_PORT),
     regSession(NULL), opSession(NULL), 
     regThread(NULL), timerHeartBeat(new Timer(String("HeartBeat"))), timerSub(new Timer(String("Subscribe"))), 
@@ -134,8 +134,9 @@ IMSTransport::~IMSTransport()
     if (stack) {
         stack->stop();
         stack->deInitialize();
-        delete stack;
+// 		delete stack;
         stack = NULL;
+		stackMainLoopThread->join();
     }
     if (sipCB) {
         delete sipCB;
@@ -269,7 +270,9 @@ IStatus IMSTransport::Init()
     }
 
     sipCB = new IMSTransportSipCallback();
-    stack = new SipStack(sipCB, realm.c_str(), impi.c_str(), impu.c_str());
+	stack = SipStack::makeInstance(sipCB, realm.c_str(), impi.c_str(), impu.c_str(), 5060);
+
+
     if (password.size() > 0) {
         stack->setPassword(password.c_str());
     }
@@ -281,14 +284,23 @@ IStatus IMSTransport::Init()
     if (!stack->initialize()) {
         return IC_TRANSPORT_IMS_STACK_INIT_FAIL;
     }
+/*
     if (!stack->start()) {
         return IC_TRANSPORT_IMS_STACK_START_FAIL;
     }
+*/
+	stackMainLoopThread = new std::thread(IMSTransport::StackMainLoop);
+
 
     regSession = new RegistrationSession(stack);
     regSession->addCaps("+g.oma.sip-im");
     regSession->addCaps("+g.3gpp.smsip");
     regSession->addCaps("language", "\"zh,en\"");
+	qcc::String regReqLine("sip:");
+	regReqLine += realm;
+	regSession->setReqUri(regReqLine.c_str());
+	regSession->setFromUri(impu.c_str());
+	regSession->setToUri(impu.c_str());
 //     regSession->setExpires(expires);
 
 //     opSession = new OptionsSession(stack);
@@ -316,7 +328,7 @@ IStatus IMSTransport::Init()
     /**
      * Start a timer for heartbeat OPTIONS
      */
-    timerHeartBeat->Start();
+    timerHeartBeat->Start(); // Should Start the heartbeat timer after successful regitration
     HeartBeatTimerAlarmListener* heartBeatTimerAlarmer = new HeartBeatTimerAlarmListener();
     alarmTime = /*gwConsts::SIPSTACK_HEARTBEAT_INTERVAL*/100;
     Alarm heartBeatAlarm(alarmTime, heartBeatTimerAlarmer, this, gwConsts::SIPSTACK_HEARTBEAT_INTERVAL);
@@ -561,7 +573,7 @@ IStatus IMSTransport::PublishService(const char* introspectionXml)
         pubSession->setToUri(impu.c_str());
         isNewCreated = true;
     }
-    if (pubSession->publish(presenceXml.c_str(), presenceXml.size())) {
+    if (pubSession->publish(presenceXml.c_str())) {
     // Wait for the response of the PUBLISH
         std::unique_lock<std::mutex> lock(imsIns->mtxPublish);
         if (condPublish.wait_for(lock, std::chrono::milliseconds(gwConsts::PUBLICATION_DEFAULT_TIMEOUT))) {
@@ -720,7 +732,7 @@ IStatus IMSTransport::SendCloudMessage(int msgType,
             ajn::services::GuidUtil::GetInstance()->GenerateGUID(&callIdStr);
             msgSession.addHeader(gwConsts::customheader::RPC_CALL_ID, callIdStr.c_str());
             msgSession.addHeader(gwConsts::customheader::RPC_ADDR, addr);
-            if (!msgSession.send(msgBuf, strlen(msgBuf))) {
+            if (!msgSession.send(msgBuf)) {
                 // if error sending out the message
                 return IC_TRANSPORT_FAIL;
             }
@@ -767,7 +779,7 @@ IStatus IMSTransport::SendCloudMessage(int msgType,
                 return IC_BAD_ARG_3;
             }
             msgSession.addHeader(gwConsts::customheader::RPC_CALL_ID, callId);
-            if (!msgSession.send(msgBuf, strlen(msgBuf))) {
+            if (!msgSession.send(msgBuf)) {
                 // if error sending out the message
                 return IC_TRANSPORT_FAIL;
             }
@@ -783,7 +795,7 @@ IStatus IMSTransport::SendCloudMessage(int msgType,
             qcc::String callIdStr;
             ajn::services::GuidUtil::GetInstance()->GenerateGUID(&callIdStr);
             msgSession.addHeader(gwConsts::customheader::RPC_CALL_ID, callIdStr.c_str());
-            if (!msgSession.send(msgBuf, strlen(msgBuf))) {
+            if (!msgSession.send(msgBuf)) {
                 // if error sending out the message
                 return IC_TRANSPORT_FAIL;
             }
@@ -793,6 +805,16 @@ IStatus IMSTransport::SendCloudMessage(int msgType,
         break;
     }
     return IC_OK;
+}
+
+void IMSTransport::StackMainLoop()
+{
+	SipStack* stack = SipStack::getInstance();
+	if (!stack->start()) {
+#ifndef NDEBUG
+		printf("Failed to start the stack!\n");
+#endif
+	}
 }
 
 void IMSTransport::RegThreadFunc()
@@ -893,9 +915,9 @@ void IMSTransport::HeartBeatTimerAlarmListener::AlarmTriggered(const qcc::Alarm&
     if (!ims) {
         return;
     }
-    // If the scscf is not present which means REGISTER is not successful, should retry to REGISTER
+    // If the scscf is not present which means REGISTER is not successful, should wait for success of registration
     if (ims->scscf.empty()) {
-        ims->regCmdQueue.Enqueue(ims->regExpires);
+//         ims->regCmdQueue.Enqueue(ims->regExpires);
         restartOpSession = true;
         return;
     }
