@@ -1,17 +1,30 @@
 /******************************************************************************
- * Copyright AllSeen Alliance. All rights reserved.
+ *  * Copyright (c) Open Connectivity Foundation (OCF) and AllJoyn Open
+ *    Source Project (AJOSP) Contributors and others.
  *
- *    Permission to use, copy, modify, and/or distribute this software for any
- *    purpose with or without fee is hereby granted, provided that the above
- *    copyright notice and this permission notice appear in all copies.
+ *    SPDX-License-Identifier: Apache-2.0
  *
- *    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- *    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- *    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- *    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- *    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- *    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *    All rights reserved. This program and the accompanying materials are
+ *    made available under the terms of the Apache License, Version 2.0
+ *    which accompanies this distribution, and is available at
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Copyright (c) Open Connectivity Foundation and Contributors to AllSeen
+ *    Alliance. All rights reserved.
+ *
+ *    Permission to use, copy, modify, and/or distribute this software for
+ *    any purpose with or without fee is hereby granted, provided that the
+ *    above copyright notice and this permission notice appear in all
+ *    copies.
+ *
+ *     THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+ *     WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+ *     WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+ *     AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ *     DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ *     PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ *     TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ *     PERFORMANCE OF THIS SOFTWARE.
  ******************************************************************************/
 #include <qcc/platform.h>
 
@@ -68,10 +81,12 @@ bool GetDescription(const XmlElement* elem, String& description)
 }
 
 
-CloudServiceAgentBusObject::CloudServiceAgentBusObject(::String const& objectPath, 
-                                                       const String& remoteAccount, const String& remoteBusName, 
-                                                       CloudCommEngineBusObject* owner)
-    : BusObject(objectPath.c_str()), 
+CloudServiceAgentBusObject::CloudServiceAgentBusObject(
+    ::String const& objectPath,
+    const String& remoteAccount,
+    const String& remoteBusName,
+    CloudCommEngineBusObject* owner)
+    : BusObject(objectPath.c_str()),
     aboutDataHandler(this),
     sp(SESSION_PORT_ANY),
     remoteAccount(remoteAccount), remoteBusName(remoteBusName),
@@ -90,7 +105,7 @@ void CloudServiceAgentBusObject::CommonMethodHandler(const InterfaceDescription:
     QStatus status = ER_OK;
 
     /* Retrieve all arguments of the method call */
-    size_t  numArgs = 0;
+    size_t numArgs = 0;
     const MsgArg* args = 0;
     msg->GetArgs(numArgs, args);
 
@@ -113,11 +128,11 @@ void CloudServiceAgentBusObject::CommonMethodHandler(const InterfaceDescription:
     calledAddr += member->name;
 
     /**
-      * Now we're ready to send out the cloud call by calling CloudCommEngine::CloudMethodCall
-      * Be noted that, since all calls to this BusObject are handled in this common handler, from
-      * performance's perspective, in CloudMethodCall() implentation, multi-thread feature should
-      * be implemented.
-      */
+     * Now we're ready to send out the cloud call by calling CloudCommEngine::CloudMethodCall
+     * Be noted that, since all calls to this BusObject are handled in this common handler, from
+     * performance's perspective, in CloudMethodCall() implentation, multi-thread feature should
+     * be implemented.
+     */
     status = ownerBusObject->CloudMethodCall(gwConsts::customheader::RPC_MSG_TYPE_METHOD_CALL, remoteAccount, calledAddr, numArgs, args, msg->GetSessionId(), this, msg);
     CHECK_STATUS_AND_REPLY("Error making the cloud method call");
 }
@@ -129,7 +144,7 @@ void CloudServiceAgentBusObject::GetProp(const InterfaceDescription::Member* mem
 
     // The method call 'Get' consists of two arguments and one return argument
     /* Retrieve all arguments of the method call */
-    size_t  numArgs = 0;
+    size_t numArgs = 0;
     const MsgArg* args = 0;
     msg->GetArgs(numArgs, args);
 
@@ -153,7 +168,7 @@ void CloudServiceAgentBusObject::SetProp(const InterfaceDescription::Member* mem
 
     // The method call 'Get' consists of two arguments and one return argument
     /* Retrieve all arguments of the method call */
-    size_t  numArgs = 0;
+    size_t numArgs = 0;
     const MsgArg* args = 0;
     msg->GetArgs(numArgs, args);
 
@@ -178,7 +193,7 @@ void CloudServiceAgentBusObject::GetAllProps(const InterfaceDescription::Member*
 
     // The method call 'Get' consists of two arguments and one return argument
     /* Retrieve all arguments of the method call */
-    size_t  numArgs = 0;
+    size_t numArgs = 0;
     const MsgArg* args = 0;
     msg->GetArgs(numArgs, args);
 
@@ -212,7 +227,7 @@ QStatus CloudServiceAgentBusObject::ParseXml(const char* xml, BusAttachment* pro
             if (root->GetName() == "service") {
                 /* this agent BusObject is top-level parent for all following children */
                 vector<XmlElement*>::const_iterator it = root->GetChildren().begin();
-                for (;it != root->GetChildren().end();it++) {
+                for (; it != root->GetChildren().end(); it++) {
                     const XmlElement* elem = *it;
                     const String& elemName = elem->GetName();
                     if (elemName == "node") {
@@ -222,7 +237,7 @@ QStatus CloudServiceAgentBusObject::ParseXml(const char* xml, BusAttachment* pro
                         if (childObjPath.size() > 0 && childObjPath[childObjPath.size() - 1] != '/' && relativePath[0] != '/') {
                             childObjPath += '/';
                         }
-*/
+ */
                         if (childObjPath == "/") {
                             childObjPath = relativePath;
                         } else {
@@ -283,22 +298,22 @@ QStatus CloudServiceAgentBusObject::ParseXml(const char* xml, BusAttachment* pro
                         }
                         // Traverse the aboutData, if some fields are missing, then try to add them
                         /*
-                            Field Name          	Required	Announced	Localized	Data type	        Description
-                            AppId	                        yes         yes             no                ay	The globally unique id for the application.
-                            DefaultLanguage 	    yes         yes             no	             s      The default language supported by the device. IETF langauge tags specified by RFC 5646.
-                            DeviceName	            no          yes             yes	             s      If Config service exist on the device, About instance populates the value as DeviceName in Config; If there is not Config, it can be set by the app. Device Name is optional for a third party apps but required for system apps. Versions of AllJoyn older than 14.12 this field was required. If working with older applications this field may be required.
-                            DeviceId	                    yes         yes             no                s     A string with value generated using platform specific means.
-                            AppName	                    yes         yes             yes               s     The application name assigned by the app manufacturer
-                            Manufacturer	            yes         yes             yes	              s     The manufacturer's name.
-                            ModelNumber	            yes         yes             no                 s      The app model number
-                            SupportedLanguages  yes         no              no                  as      A list of supported languages by the application
-                            Description                 yes         no              yes                 s       Detailed description provided by the application.
-                            DateOfManufacture   no          no              no                   s      The date of manufacture. using format YYYY-MM-DD. (Known as XML DateTime Format)
-                            SoftwareVersion         yes         no              no                   s      The software version of the manufacturer's software
-                            AJSoftwareVersion      yes         no              no                  s      The current version of the AllJoyn SDK utilized by the application.
-                            HardwareVersion        no          no              no                   s       The device hardware version.
-                            SupportUrl                   no          no              no                   s      The support URL.
-                        */
+                            Field Name         Required    Announced    Localized    DataType    Description
+                            AppId                yes         yes          no           ay          The globally unique id for the application.
+                            DefaultLanguage      yes         yes          no           s           The default language supported by the device. IETF langauge tags specified by RFC 5646.
+                            DeviceName           no          yes          yes          s           If Config service exist on the device, About instance populates the value as DeviceName in Config; If there is not Config, it can be set by the app. Device Name is optional for a third party apps but required for system apps. Versions of AllJoyn older than 14.12 this field was required. If working with older applications this field may be required.
+                            DeviceI              yes         yes          no           s           A string with value generated using platform specific means.
+                            AppName              yes         yes          yes          s           The application name assigned by the app manufacturer
+                            Manufacturer         yes         yes          yes          s           The manufacturer's name.
+                            ModelNumber          yes         yes          no           s           The app model number
+                            SupportedLanguages   yes         no           no           as          A list of supported languages by the application
+                            Description          yes         no           yes          s           Detailed description provided by the application.
+                            DateOfManufacture    no          no           no           s           The date of manufacture. using format YYYY-MM-DD. (Known as XML DateTime Format)
+                            SoftwareVersion      yes         no           no           s           The software version of the manufacturer's software
+                            AJSoftwareVersion    yes         no           no           s           The current version of the AllJoyn SDK utilized by the application.
+                            HardwareVersion      no          no           no           s           The device hardware version.
+                            SupportUrl           no          no           no           s           The support URL.
+                         */
                         size_t numAboutEntries = 0;
                         MsgArg* aboutEntries = NULL;
                         status = context.aboutData->Get("a{sv}", &numAboutEntries, &aboutEntries);
@@ -387,7 +402,7 @@ QStatus CloudServiceAgentBusObject::ParseNode(const XmlElement* root, BusAttachm
     if (GetSecureAnnotation(root) == "true") {
         this->isSecure = true;
     }
-*/
+ */
 
     /* Iterate over <interface> and <node> elements */
     const vector<XmlElement*>& rootChildren = root->GetChildren();
@@ -486,7 +501,7 @@ QStatus CloudServiceAgentBusObject::ParseInterface(const XmlElement* root, BusAt
         (ifName == org::freedesktop::DBus::Properties::InterfaceName) ||
         (ifName == org::freedesktop::DBus::Introspectable::InterfaceName) ||
         (ifName == org::allseen::Introspectable::InterfaceName)) {
-            return ER_OK;
+        return ER_OK;
     }
 
     /*
@@ -586,7 +601,8 @@ QStatus CloudServiceAgentBusObject::ParseInterface(const XmlElement* root, BusAt
 
                 /* Add the member */
                 if ((ER_OK == status) && (isMethod || isSignal)) {
-                    status = intf->AddMember(isMethod ? MESSAGE_METHOD_CALL : MESSAGE_SIGNAL,
+                    status = intf->AddMember(
+                        isMethod ? MESSAGE_METHOD_CALL : MESSAGE_SIGNAL,
                         memberName.c_str(),
                         inSig.c_str(),
                         outSig.c_str(),
@@ -677,7 +693,7 @@ QStatus CloudServiceAgentBusObject::ParseInterface(const XmlElement* root, BusAt
                             if (ER_OK != status) {
                                 // log error
                                 break;
-                            } 
+                            }
                         } else if (currMember->memberType == MESSAGE_SIGNAL) {
                             // not implemented
                         }
@@ -827,7 +843,7 @@ QStatus CloudServiceAgentBusObject::PrepareAgent(AllJoynContext* _context, const
         Cleanup(_context ? false : true);
         return status;
     }
-*/
+ */
 
     /* Prepare the context for all children objects */
 /*
@@ -840,7 +856,7 @@ QStatus CloudServiceAgentBusObject::PrepareAgent(AllJoynContext* _context, const
             }
         }
     }
-*/
+ */
 
     return status;
 }
@@ -907,8 +923,7 @@ QStatus CloudServiceAgentBusObject::Cleanup(bool topLevel)
 //         if (context.about) {
 //             status = context.about->RemoveObjectDescription(String(this->GetPath()), interfaces);
 //         }
-    }
-    else {
+    } else {
         if (context.bus && context.busListener) {
             context.bus->UnregisterBusListener(*context.busListener);
             context.bus->UnbindSessionPort(context.busListener->getSessionPort());
@@ -949,7 +964,7 @@ void CloudServiceAgentBusObject::LocalSessionJoined(void* arg, ajn::SessionPort 
 
     String calledAddr(parentCSABO->remoteBusName);
     calledAddr += "/1"; // 1 means adding, 0 means deleting
-   
+
     QStatus status = parentCSABO->ownerBusObject->UpdateSignalHandlerInfoToCloud(parentCSABO->remoteAccount, calledAddr, joiner, id);
     CHECK_STATUS_AND_LOG("Error updating signal handler info to cloud while session joined");
 }
@@ -977,7 +992,7 @@ void CloudServiceAgentBusObject::LocalSessionLost(void* arg, ajn::SessionId sess
 CloudServiceAgentBusObject::CloudServiceAgentAboutData::CloudServiceAgentAboutData(CloudServiceAgentBusObject* _owner)
     : owner(_owner)
 {
-    
+
 }
 
 QStatus CloudServiceAgentBusObject::CloudServiceAgentAboutData::GetAboutData(ajn::MsgArg* msgArg, const char* language)

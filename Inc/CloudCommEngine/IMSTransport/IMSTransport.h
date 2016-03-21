@@ -1,17 +1,30 @@
 /******************************************************************************
- * Copyright AllSeen Alliance. All rights reserved.
+ *  * Copyright (c) Open Connectivity Foundation (OCF) and AllJoyn Open
+ *    Source Project (AJOSP) Contributors and others.
  *
- *    Permission to use, copy, modify, and/or distribute this software for any
- *    purpose with or without fee is hereby granted, provided that the above
- *    copyright notice and this permission notice appear in all copies.
+ *    SPDX-License-Identifier: Apache-2.0
  *
- *    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- *    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- *    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- *    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- *    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- *    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *    All rights reserved. This program and the accompanying materials are
+ *    made available under the terms of the Apache License, Version 2.0
+ *    which accompanies this distribution, and is available at
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Copyright (c) Open Connectivity Foundation and Contributors to AllSeen
+ *    Alliance. All rights reserved.
+ *
+ *    Permission to use, copy, modify, and/or distribute this software for
+ *    any purpose with or without fee is hereby granted, provided that the
+ *    above copyright notice and this permission notice appear in all
+ *    copies.
+ *
+ *     THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+ *     WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+ *     WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+ *     AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ *     DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ *     PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ *     TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ *     PERFORMANCE OF THIS SOFTWARE.
  ******************************************************************************/
 #ifndef IMSTRANSPORT_H_
 #define IMSTRANSPORT_H_
@@ -39,7 +52,6 @@
 namespace sipe2e {
 namespace gateway {
 
-
 struct SyncContext {
     std::mutex mtx;
     std::condition_variable con;
@@ -60,46 +72,46 @@ struct SyncContext {
  * IMS/SIP sessions will be maintained and managed in this module. Upper layers will be utilizing
  * this module to send/receive interaction messages through IMS network.
  */
-class SIPE2E_GATEWAY_EXTERN IMSTransport
-{
+class SIPE2E_GATEWAY_EXTERN IMSTransport {
     friend class IMSTransportSipCallback;
-public:
+
+  public:
     IMSTransport();
     virtual ~IMSTransport();
 
     static IMSTransport* GetInstance();
     static IStatus DeleteInstance();
-public:
+
     /**
      * Initialize the whole environment, including the stack and all required information to run the stack
-     * @param -    
+     * @param -
      */
     IStatus Init();
 
     gwConsts::IMS_TRANSPORT_STATUS_ENUM GetStatus();
 
     /**
-     * 
+     *
      * @param remoteAccount - the gateway account address of the remote service
      */
     IStatus Subscribe(const char* remoteAccount);
 
     /**
-     * 
-     * @param - 
+     *
+     * @param -
      */
     IStatus Unsubscribe(const char* remoteAccount);
 
     /**
      * Publish local services to the IMS network (presence server)
      * TBD: this will block the caller
-     * @param -    
+     * @param -
      */
     IStatus PublishService(const char* introspectionXml);
 
     /**
      * Delete local services from the IMS network (presence server)
-     * @param -    
+     * @param -
      */
     IStatus DeleteService(const char* introspectionXml);
 
@@ -112,7 +124,7 @@ public:
 
     /**
      *
-     * @param msgBuf - 
+     * @param msgBuf -
      */
     IStatus ReadCloudMessage(char** msgBuf);
 
@@ -121,40 +133,40 @@ public:
     /**
      *
      * @param reqType - See RPC_MSG_TYPE_ENUM
-     * @param peer - 
+     * @param peer -
      * @param callId - if it's request and callId is NULL, then generate the CallID here
-     * @param msgBuf - 
-     * @param resMsgBuf - 
+     * @param msgBuf -
+     * @param resMsgBuf -
      */
-    IStatus SendCloudMessage(int32_t msgType,
+    IStatus SendCloudMessage(
+        int32_t msgType,
         const char* peer,
         const char* callId,
         const char* addr,
         const char* msgBuf,
         char** resMsgBuf);
 
-private:
-	/**
-	 * 
-	 * @param - 
-	 */
-	static void StackMainLoop();
+  private:
+    /**
+     *
+     * @param -
+     */
+    static void StackMainLoop();
     /**
      * The thread function for registration task
-     * @param - 
+     * @param -
      */
     static void RegThreadFunc();
 
     /**
      * Publication routine, periodically checking the map '
-     * @param - 
+     * @param -
      */
     static void PubFunc(void* para);
 
-    class SubTimerAlarmListener : public qcc::AlarmListener
-    {
-    public:
-        virtual ~SubTimerAlarmListener(){};
+    class SubTimerAlarmListener : public qcc::AlarmListener {
+      public:
+        virtual ~SubTimerAlarmListener() { };
 
         /**
          * @param alarm  The alarm that was triggered.
@@ -171,10 +183,9 @@ private:
      */
     static void SubFunc(void* para);
 
-    class HeartBeatTimerAlarmListener : public qcc::AlarmListener
-    {
-    public:
-        virtual ~HeartBeatTimerAlarmListener(){};
+    class HeartBeatTimerAlarmListener : public qcc::AlarmListener {
+      public:
+        virtual ~HeartBeatTimerAlarmListener() { };
 
         /**
          * @param alarm  The alarm that was triggered.
@@ -194,20 +205,20 @@ private:
 
     /**
      * TBD
-     * @param - 
+     * @param -
      */
     IStatus doSubscribe(const char* remoteAccount);
 
-private:
+  private:
     /* The stack that supports the whole IMS communications */
     SipStack* stack;
-	/* The thread that runs the main loop the stack logics */
-	std::thread* stackMainLoopThread;
+    /* The thread that runs the main loop the stack logics */
+    std::thread* stackMainLoopThread;
     /* Callback for receiving incoming messages */
     IMSTransportSipCallback* sipCB;
 
     /* The status of the IMS Transport Layer */
-    gwConsts::IMS_TRANSPORT_STATUS_ENUM imsTransportStatus; 
+    gwConsts::IMS_TRANSPORT_STATUS_ENUM imsTransportStatus;
 
     /* Realm */
     qcc::String realm;
@@ -245,7 +256,7 @@ private:
     std::mutex mtxSubscribe, mtxUnsubscribe;
     std::condition_variable condSubscribe, condUnsubscribe;
 
-    /* 
+    /*
      * Key: appId@deviceId@sha256, where sha256 is the sha signature of the introspection xml string
      * Value: the publish session and the introspection xml string
      */
@@ -263,7 +274,7 @@ private:
     std::condition_variable condPublish, condUnpublish;
 
     /**
-     * The thread that will be started on initialization for registration task. 
+     * The thread that will be started on initialization for registration task.
      * Once any one of the following conditions is met, then task initiates
      * a new registration:
      *   > the registration is expired (the timer expires)
@@ -297,26 +308,26 @@ private:
     /* */
     uint32_t regExpires; // in seconds
 
-    /** 
+    /**
      * After sending out the request message, the sender thread will wait for the response.
      * When a response message arrives, the receiver (Callback) will have to dispatch it
      * to the waiting thread according to the CallID of the request-response pair.
      * The following map stores the information of CallID and its corresponding waiting thread
      */
-    std::map<qcc::String, std::shared_ptr<SyncContext>> responseDispatchTable;
+    std::map<qcc::String, std::shared_ptr<SyncContext> > responseDispatchTable;
     /* Mutex for protecting responseDispatchTable */
     std::mutex mtxResponseDispatchTable;
 
-    /** 
+    /**
      * The incoming messages queue (FIFO). There are one producer (IMS receiver) and
-     * multiple consumers 
+     * multiple consumers
      */
     SyncQueue<char*> incomingMsgQueue;
 
     /**
      * The incoming queue (FIFO) storing service subscription notifications.
      * CloudCommEngine will generate a thread to read the notifications by
-     * calling 
+     * calling
      */
     SyncQueue<char*> incomingNotifyQueue;
 
@@ -328,5 +339,3 @@ private:
 }
 
 #endif // IMSTRANSPORT_H_
-
-
