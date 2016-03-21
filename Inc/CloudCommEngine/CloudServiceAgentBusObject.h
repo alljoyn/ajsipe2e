@@ -1,17 +1,30 @@
 /******************************************************************************
- * Copyright AllSeen Alliance. All rights reserved.
+ *    Copyright (c) Open Connectivity Foundation (OCF) and AllJoyn Open
+ *    Source Project (AJOSP) Contributors and others.
  *
- *    Permission to use, copy, modify, and/or distribute this software for any
- *    purpose with or without fee is hereby granted, provided that the above
- *    copyright notice and this permission notice appear in all copies.
+ *    SPDX-License-Identifier: Apache-2.0
  *
- *    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- *    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- *    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- *    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- *    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- *    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *    All rights reserved. This program and the accompanying materials are
+ *    made available under the terms of the Apache License, Version 2.0
+ *    which accompanies this distribution, and is available at
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Copyright (c) Open Connectivity Foundation and Contributors to AllSeen
+ *    Alliance. All rights reserved.
+ *
+ *    Permission to use, copy, modify, and/or distribute this software for
+ *    any purpose with or without fee is hereby granted, provided that the
+ *    above copyright notice and this permission notice appear in all
+ *    copies.
+ *
+ *     THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+ *     WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+ *     WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+ *     AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ *     DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ *     PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ *     TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ *     PERFORMANCE OF THIS SOFTWARE.
  ******************************************************************************/
 #ifndef CLOUDSERVICEAGENTBUSOBJECT_H_
 #define CLOUDSERVICEAGENTBUSOBJECT_H_
@@ -33,30 +46,28 @@
 #include "CloudCommEngine/CloudCommEngineBusObject.h"
 
 namespace sipe2e {
-
 namespace gateway {
-
-
 /**
-  * CloudServiceAgentBusObject class
-  * This is the Agent BusObject exposing services/interfaces on behalf of cloud services
-  * Every Agent BusObject is created while subscribing a remote service (either cloud service
-  * or service provided by devices in other proximal networks).
-  * Every Agent BusObject is on its specific BusAttachment which is different from the one
-  * of CloudCommEngineBusObject instance.
-  */
-class CloudServiceAgentBusObject : public ajn::BusObject
-{
+ * CloudServiceAgentBusObject class
+ * This is the Agent BusObject exposing services/interfaces on behalf of cloud services
+ * Every Agent BusObject is created while subscribing a remote service (either cloud service
+ * or service provided by devices in other proximal networks).
+ * Every Agent BusObject is on its specific BusAttachment which is different from the one
+ * of CloudCommEngineBusObject instance.
+ */
+class CloudServiceAgentBusObject : public ajn::BusObject {
     friend class CloudCommEngineBusObject;
     friend class CloudCommEngineBusObject::CloudMethodCallRunable;
     friend class CloudServiceAgentAboutData;
-public:
-    CloudServiceAgentBusObject(const qcc::String& objectPath, 
-        const qcc::String& remoteAccount, const qcc::String& remoteBusName, 
+
+  public:
+    CloudServiceAgentBusObject(
+        const qcc::String& objectPath,
+        const qcc::String& remoteAccount,
+        const qcc::String& remoteBusName,
         CloudCommEngineBusObject* owner);
     virtual ~CloudServiceAgentBusObject();
 
-public:
     /**
      * Common method handler for all methods of cloud service
      * @param member - the member (method) of the interface that was executed
@@ -64,7 +75,6 @@ public:
      */
     void CommonMethodHandler(const ajn::InterfaceDescription::Member* member, ajn::Message& msg);
 
-public:
     /**
      *    Parse the introspection XML string and create/activate/add interfaces included to this BusObject
      * Meantime add method handler for all methods
@@ -88,8 +98,8 @@ public:
 
     /**
      * Prepare the agent AllJoyn executing environment, including BusAttachment, AboutService
-     * @param _bus - the BusAttachment that the Agent BusObject is registers on. if it's NULL, 
-     *                           then 
+     * @param _bus - the BusAttachment that the Agent BusObject is registers on. if it's NULL,
+     *                           then
      */
     QStatus PrepareAgent(AllJoynContext* _context, const qcc::String& serviceIntrospectionXml);
 
@@ -112,21 +122,21 @@ public:
     static void LocalSessionJoined(void* arg, ajn::SessionPort sessionPort, ajn::SessionId id, const char* joiner);
     static void LocalSessionLost(void* arg, ajn::SessionId sessionId, ajn::SessionListener::SessionLostReason reason);
 
-protected:
+  protected:
     /**
      * Override the virtual method from its parent ProxyBusObject to handle all signals' Get
-     * 
+     *
      */
     virtual void GetProp(const ajn::InterfaceDescription::Member* member, ajn::Message& msg);
     /**
      * Override the virtual method from its parent ProxyBusObject to handle all signals' Set
-     * 
+     *
      */
     virtual void SetProp(const ajn::InterfaceDescription::Member* member, ajn::Message& msg);
 
     virtual void GetAllProps(const ajn::InterfaceDescription::Member* member, ajn::Message& msg);
 
-private:
+  private:
     /**
      * @internal
      *    Parse the node in the introspection XML and create/activate/add interfaces included to this BusObject
@@ -145,19 +155,18 @@ private:
      */
     QStatus ParseInterface(const qcc::XmlElement* root, ajn::BusAttachment* proxyBus);
 
-protected:
-    class CloudServiceAgentAboutData : public ajn::AboutDataListener
-    {
-    public:
+  protected:
+    class CloudServiceAgentAboutData : public ajn::AboutDataListener {
+      public:
         CloudServiceAgentAboutData(CloudServiceAgentBusObject* _owner);
         virtual QStatus GetAboutData(ajn::MsgArg* msgArg, const char* language);
         virtual QStatus GetAnnouncedAboutData(ajn::MsgArg* msgArg);
 
-    private:
+      private:
         CloudServiceAgentBusObject* owner;
     } aboutDataHandler;
 
-protected:
+  protected:
     /* The AllJoyn execution environment */
     AllJoynContext context;
     /* The session port */
@@ -170,12 +179,9 @@ protected:
     std::vector<CloudServiceAgentBusObject*> children;
     /* The parent BusObject that owns this agent */
     CloudCommEngineBusObject* ownerBusObject;
-
 };
 
 } // namespace gateway
-
 } // namespace sipe2e
 
 #endif // CLOUDSERVICEAGENTBUSOBJECT_H_
-

@@ -1,17 +1,30 @@
 /******************************************************************************
- * Copyright AllSeen Alliance. All rights reserved.
+ *    Copyright (c) Open Connectivity Foundation (OCF) and AllJoyn Open
+ *    Source Project (AJOSP) Contributors and others.
  *
- *    Permission to use, copy, modify, and/or distribute this software for any
- *    purpose with or without fee is hereby granted, provided that the above
- *    copyright notice and this permission notice appear in all copies.
+ *    SPDX-License-Identifier: Apache-2.0
  *
- *    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- *    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- *    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- *    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- *    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- *    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *    All rights reserved. This program and the accompanying materials are
+ *    made available under the terms of the Apache License, Version 2.0
+ *    which accompanies this distribution, and is available at
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Copyright (c) Open Connectivity Foundation and Contributors to AllSeen
+ *    Alliance. All rights reserved.
+ *
+ *    Permission to use, copy, modify, and/or distribute this software for
+ *    any purpose with or without fee is hereby granted, provided that the
+ *    above copyright notice and this permission notice appear in all
+ *    copies.
+ *
+ *     THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+ *     WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+ *     WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+ *     AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ *     DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ *     PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ *     TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ *     PERFORMANCE OF THIS SOFTWARE.
  ******************************************************************************/
 
 #ifndef PROXIMALCOMMENGINEBUSLISTENER_H_
@@ -32,20 +45,29 @@ namespace gateway {
 /**
  * class CommonBusListener
  */
-class CommonBusListener : public ajn::BusListener, public ajn::SessionPortListener, public ajn::SessionListener {
-
+class CommonBusListener :
+    public ajn::BusListener,
+    public ajn::SessionPortListener,
+    public ajn::SessionListener {
   public:
-
-      typedef void(*daemonDisconnectCB)(void* arg);
-      typedef void(*sessionJoinedCB)(void* arg, ajn::SessionPort sessionPort, ajn::SessionId id, const char* joiner);
-      typedef void(*sessionLostCB)(void* arg, ajn::SessionId sessionId, SessionLostReason reason);
+    typedef void (*daemonDisconnectCB)(void* arg);
+    typedef void (*sessionJoinedCB)(
+        void* arg,
+        ajn::SessionPort sessionPort,
+        ajn::SessionId id,
+        const char* joiner);
+    typedef void (*sessionLostCB)(
+        void* arg,
+        ajn::SessionId sessionId,
+        SessionLostReason reason);
 
     /**
      * Constructor of CommonBusListener
      * @param bus - used to set a session Listener
      * @param daemonDisconnectCB - used to set a callback for when the daemon is disconnected
      */
-    CommonBusListener(ajn::BusAttachment* bus = NULL,
+    CommonBusListener(
+        ajn::BusAttachment* bus = NULL,
         daemonDisconnectCB dDCB = NULL,
         sessionJoinedCB sJCB = NULL,
         sessionLostCB sLCB = NULL,
@@ -63,7 +85,10 @@ class CommonBusListener : public ajn::BusListener, public ajn::SessionPortListen
      * @param opts - the session options
      * @return true/false
      */
-    bool AcceptSessionJoiner(ajn::SessionPort sessionPort, const char* joiner, const ajn::SessionOpts& opts);
+    bool AcceptSessionJoiner(
+        ajn::SessionPort sessionPort,
+        const char* joiner,
+        const ajn::SessionOpts& opts);
 
     /**
      * Set the Value of the SessionPort associated with this SessionPortListener
@@ -77,7 +102,10 @@ class CommonBusListener : public ajn::BusListener, public ajn::SessionPortListen
      * @param id - sessionId of session
      * @param joiner - name of joiner
      */
-    void SessionJoined(ajn::SessionPort sessionPort, ajn::SessionId id, const char* joiner);
+    void SessionJoined(
+        ajn::SessionPort sessionPort,
+        ajn::SessionId id,
+        const char* joiner);
 
     /**
      * Callback for when Session is lost
@@ -109,7 +137,6 @@ class CommonBusListener : public ajn::BusListener, public ajn::SessionPortListen
     ajn::SessionPort getSessionPortBySessionId(ajn::SessionId id);
 
   private:
-
     /**
      * The port used as part of the join session request
      */
@@ -124,8 +151,7 @@ class CommonBusListener : public ajn::BusListener, public ajn::SessionPortListen
      * The sessionIds for the port
      */
 //     std::vector<ajn::SessionId> m_SessionIds;
-    typedef struct  
-    {
+    typedef struct {
         ajn::SessionId id;
         qcc::String joiner;
         ajn::SessionPort port;
@@ -144,8 +170,6 @@ class CommonBusListener : public ajn::BusListener, public ajn::SessionPortListen
 };
 
 } // namespace gateway
-
 } // namespace sipe2e
-
 
 #endif /* PROXIMALCOMMENGINEBUSLISTENER_H_ */
