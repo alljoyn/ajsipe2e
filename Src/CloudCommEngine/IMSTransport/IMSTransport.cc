@@ -1,27 +1,52 @@
 /******************************************************************************
- * Copyright AllSeen Alliance. All rights reserved.
+ * Copyright (c) 2016 Open Connectivity Foundation (OCF) and AllJoyn Open
+ *    Source Project (AJOSP) Contributors and others.
  *
- *    Permission to use, copy, modify, and/or distribute this software for any
- *    purpose with or without fee is hereby granted, provided that the above
- *    copyright notice and this permission notice appear in all copies.
+ *    SPDX-License-Identifier: Apache-2.0
  *
- *    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- *    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- *    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- *    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- *    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- *    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *    All rights reserved. This program and the accompanying materials are
+ *    made available under the terms of the Apache License, Version 2.0
+ *    which accompanies this distribution, and is available at
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Copyright 2016 Open Connectivity Foundation and Contributors to
+ *    AllSeen Alliance. All rights reserved.
+ *
+ *    Permission to use, copy, modify, and/or distribute this software for
+ *    any purpose with or without fee is hereby granted, provided that the
+ *    above copyright notice and this permission notice appear in all
+ *    copies.
+ *
+ *     THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+ *     WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+ *     WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+ *     AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ *     DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ *     PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ *     TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ *     PERFORMANCE OF THIS SOFTWARE.
  ******************************************************************************/
-#include <qcc/platform.h>
-#include "CloudCommEngine/IMSTransport/IMSTransport.h"
-#include "CloudCommEngine/IMSTransport/IMSTransportSipCallback.h"
-#include "CloudCommEngine/IMSTransport/pidf.h"
-
+//#include <qcc/platform.h>
 #include "Common/GuidUtil.h"
 #include "Common/sha256.h"
 #include "Common/CommonUtils.h"
 
+// We have to undefine the macro "SOCKET_ERROR" here to work around an issue that
+// it is defined in both alljoyn/core/alljoyn/common/inc/qcc/posix/SocketTypes.h
+// and sofia-sip/su.h.
+#ifdef SOCKET_ERROR
+#undef SOCKET_ERROR
+#endif
+
+#include "CloudCommEngine/IMSTransport/IMSTransportSipCallback.h"
+#include "CloudCommEngine/IMSTransport/IMSTransport.h"
+#include "CloudCommEngine/IMSTransport/pidf.h"
+
+//#include "Common/GuidUtil.h"
+//#include "Common/sha256.h"
+//#include "Common/CommonUtils.h"
+
+#include <qcc/platform.h>
 #include <qcc/XmlElement.h>
 #include <qcc/StringSource.h>
 #include <qcc/StringUtil.h>
@@ -30,7 +55,7 @@
 
 #include <mutex>
 
-#if defined( _MSC_VER )
+#if defined(_MSC_VER)
 #include <direct.h>        // _getcwd
 // #include <crtdbg.h>
 #include <windows.h>
@@ -40,6 +65,9 @@
 #include <sys/stat.h>    // mkdir
 #endif
 
+#ifndef MAX_PATH
+#define MAX_PATH 260 // The MAX_PATH macro is not defined on Linux.
+#endif
 
 using namespace qcc;
 using namespace ajn;
@@ -50,11 +78,18 @@ namespace gateway {
 static IMSTransport* imsIns = new IMSTransport();
 
 
-IMSTransport::IMSTransport()
-    : stack(NULL), stackMainLoopThread(NULL), sipCB(NULL), imsTransportStatus(gwConsts::IMS_TRANSPORT_STATUS_UNREGISTERED),
-    realm(gwConsts::DEFAULT_REALM), pcscfPort(gwConsts::DEFAULT_PCSCF_PORT),
-    regSession(NULL), opSession(NULL), 
-    regThread(NULL), timerHeartBeat(new Timer(String("HeartBeat"))), timerSub(new Timer(String("Subscribe"))), 
+IMSTransport::IMSTransport() :
+    stack(NULL),
+    stackMainLoopThread(NULL),
+    sipCB(NULL),
+    imsTransportStatus(gwConsts::IMS_TRANSPORT_STATUS_UNREGISTERED),
+    realm(gwConsts::DEFAULT_REALM),
+    pcscfPort(gwConsts::DEFAULT_PCSCF_PORT),
+    regSession(NULL),
+    opSession(NULL),
+    regThread(NULL),
+    timerSub(new Timer(String("Subscribe"))),
+    timerHeartBeat(new Timer(String("HeartBeat"))),
     regExpires(gwConsts::REGISTRATION_DEFAULT_EXPIRES)
 {
 }
@@ -114,13 +149,13 @@ IMSTransport::~IMSTransport()
     }
     publications.clear();
     if (regSession) {
-		delete regSession;
-		regSession = new RegistrationSession(stack);
-		qcc::String regReqLine("sip:");
-		regReqLine += realm;
-		regSession->setReqUri(regReqLine.c_str());
-		regSession->setFromUri(impu.c_str());
-		regSession->setToUri(impu.c_str());
+        delete regSession;
+        regSession = new RegistrationSession(stack);
+        qcc::String regReqLine("sip:");
+        regReqLine += realm;
+        regSession->setReqUri(regReqLine.c_str());
+        regSession->setFromUri(impu.c_str());
+        regSession->setToUri(impu.c_str());
 
         for (int i = 0; i < 5; i++) { // try to unregister for 5 times with 5 seconds timeout every time
             regSession->unRegister();
@@ -138,9 +173,9 @@ IMSTransport::~IMSTransport()
     if (stack) {
         stack->stop();
         stack->deInitialize();
-// 		delete stack;
+//      delete stack;
         stack = NULL;
-		stackMainLoopThread->join();
+        stackMainLoopThread->join();
     }
     if (sipCB) {
         delete sipCB;
@@ -259,11 +294,11 @@ IStatus IMSTransport::Init()
             }
         }
     }
-    
+
     // subscriptions
     const XmlElement* subscriptionsNode = rootNode->GetChild((String)"Subscriptions");
     if (subscriptionsNode) {
-        std::vector<const XmlElement*>& subscriptionNodes = subscriptionsNode->GetChildren((String)"Subscription");
+        const std::vector<const XmlElement*>& subscriptionNodes = subscriptionsNode->GetChildren((String)"Subscription");
         for (size_t subIndx = 0; subIndx < subscriptionNodes.size(); subIndx++) {
             const XmlElement* subscriptionNode = subscriptionNodes[subIndx];
             if (subscriptionNode) {
@@ -274,7 +309,7 @@ IStatus IMSTransport::Init()
     }
 
     sipCB = new IMSTransportSipCallback();
-	stack = SipStack::makeInstance(sipCB, realm.c_str(), impi.c_str(), impu.c_str(), 5060);
+    stack = SipStack::makeInstance(sipCB, realm.c_str(), impi.c_str(), impu.c_str(), 5060);
 
 
     if (password.size() > 0) {
@@ -292,25 +327,25 @@ IStatus IMSTransport::Init()
     if (!stack->start()) {
         return IC_TRANSPORT_IMS_STACK_START_FAIL;
     }
-*/
-	stackMainLoopThread = new std::thread(IMSTransport::StackMainLoop);
+ */
+    stackMainLoopThread = new std::thread(IMSTransport::StackMainLoop);
 
 
     regSession = new RegistrationSession(stack);
     regSession->addCaps("+g.oma.sip-im");
     regSession->addCaps("+g.3gpp.smsip");
     regSession->addCaps("language", "\"zh,en\"");
-	qcc::String regReqLine("sip:");
-	regReqLine += realm;
-	regSession->setReqUri(regReqLine.c_str());
-	regSession->setFromUri(impu.c_str());
-	regSession->setToUri(impu.c_str());
+    qcc::String regReqLine("sip:");
+    regReqLine += realm;
+    regSession->setReqUri(regReqLine.c_str());
+    regSession->setFromUri(impu.c_str());
+    regSession->setToUri(impu.c_str());
 //     regSession->setExpires(expires);
 
 //     opSession = new OptionsSession(stack);
-    
+
     /**
-     * Here we start a new thread for registration task. 
+     * Here we start a new thread for registration task.
      * Once any one of the following conditions is met, then task initiates
      * a new registration:
      *   > the registration is expired (the timer expires)
@@ -325,7 +360,7 @@ IStatus IMSTransport::Init()
      */
     timerSub->Start();
     SubTimerAlarmListener* subTimerAlarmer = new SubTimerAlarmListener();
-    uint32_t alarmTime = /*gwConsts::SIPSTACK_HEARTBEAT_INTERVAL*/100;
+    uint32_t alarmTime = /*gwConsts::SIPSTACK_HEARTBEAT_INTERVAL*/ 100;
     Alarm subAlarm(alarmTime, subTimerAlarmer, this, gwConsts::SIPSTACK_SUBSCRIPTION_INTERVAL);
     timerSub->AddAlarm(subAlarm);
 
@@ -334,7 +369,7 @@ IStatus IMSTransport::Init()
      */
     timerHeartBeat->Start(); // Should Start the heartbeat timer after successful regitration
     HeartBeatTimerAlarmListener* heartBeatTimerAlarmer = new HeartBeatTimerAlarmListener();
-    alarmTime = /*gwConsts::SIPSTACK_HEARTBEAT_INTERVAL*/100;
+    alarmTime = /*gwConsts::SIPSTACK_HEARTBEAT_INTERVAL*/ 100;
     Alarm heartBeatAlarm(alarmTime, heartBeatTimerAlarmer, this, gwConsts::SIPSTACK_HEARTBEAT_INTERVAL);
     timerHeartBeat->AddAlarm(heartBeatAlarm);
 
@@ -529,7 +564,7 @@ IStatus IMSTransport::PublishService(const char* introspectionXml)
             break;
         }
     }
-    
+
     String serviceId = appId + "@" + deviceId + "@";
     serviceId += sha256(introspectionXml).c_str();
 
@@ -578,7 +613,7 @@ IStatus IMSTransport::PublishService(const char* introspectionXml)
         isNewCreated = true;
     }
     if (pubSession->publish(presenceXml.c_str())) {
-    // Wait for the response of the PUBLISH
+        // Wait for the response of the PUBLISH
         std::unique_lock<std::mutex> lock(imsIns->mtxPublish);
         if (std::cv_status::no_timeout == condPublish.wait_for(lock, std::chrono::milliseconds(gwConsts::PUBLICATION_DEFAULT_TIMEOUT))) {
             // if publishing is correctly responded
@@ -663,7 +698,7 @@ IStatus IMSTransport::ReadServiceNotification(char** msgBuf)
     }
     if (incomingNotifyQueue.TryDequeue(*msgBuf)) {
         // the queue is not empty and not stopped, meaning a correct notification returned
-        
+
     } else {
         // the queue has been stopped
         // The queue has been stopped
@@ -698,12 +733,13 @@ void IMSTransport::StopReadCloudMessage()
     incomingMsgQueue.StopQueue();
 }
 
-IStatus IMSTransport::SendCloudMessage(int msgType, 
-                                       const char* peer, 
-                                       const char* callId, 
-                                       const char* addr,
-                                       const char* msgBuf, 
-                                       char** resMsgBuf)
+IStatus IMSTransport::SendCloudMessage(
+    int msgType,
+    const char* peer,
+    const char* callId,
+    const char* addr,
+    const char* msgBuf,
+    char** resMsgBuf)
 {
     if (!peer) {
         return IC_BAD_ARG_2;
@@ -753,19 +789,19 @@ IStatus IMSTransport::SendCloudMessage(int msgType,
                     String reqKey(peer);
                     reqKey += "^";
                     reqKey += callIdStr;
-                    responseDispatchTable.insert(std::pair<qcc::String, std::shared_ptr<SyncContext>>(reqKey, syncCtx));
+                    responseDispatchTable.insert(std::pair<qcc::String, std::shared_ptr<SyncContext> >(reqKey, syncCtx));
                 }
                 {
                     std::unique_lock<std::mutex> lock(syncCtx->mtx);
-                    if (std::cv_status::no_timeout == syncCtx->con.wait_for(lock, 
-                        std::chrono::milliseconds(gwConsts::RPC_REQ_TIMEOUT))) {
+                    if (std::cv_status::no_timeout == syncCtx->con.wait_for(lock,
+                                                                            std::chrono::milliseconds(gwConsts::RPC_REQ_TIMEOUT))) {
                         // if no timeout waiting for the response
                         if (syncCtx->content) {
                             *resMsgBuf = syncCtx->content; // will hopefully be deallocated in ReleaseBuf()
                             syncCtx->content = NULL;
                         }/* else {
                             return IC_FAIL;
-                        }*/
+                            }*/
                     } else {
                         // timeout
                         return IC_TIMEOUT;
@@ -774,6 +810,7 @@ IStatus IMSTransport::SendCloudMessage(int msgType,
             }
         }
         break;
+
     case gwConsts::customheader::RPC_MSG_TYPE_METHOD_RET:
     case gwConsts::customheader::RPC_MSG_TYPE_PROPERTY_RET:
     case gwConsts::customheader::RPC_MSG_TYPE_SIGNAL_RET:
@@ -789,6 +826,7 @@ IStatus IMSTransport::SendCloudMessage(int msgType,
             }
         }
         break;
+
     case gwConsts::customheader::RPC_MSG_TYPE_UPDATE_SIGNAL_HANDLER:
         {
             if (!addr) {
@@ -805,6 +843,7 @@ IStatus IMSTransport::SendCloudMessage(int msgType,
             }
         }
         break;
+
     default:
         break;
     }
@@ -813,12 +852,12 @@ IStatus IMSTransport::SendCloudMessage(int msgType,
 
 void IMSTransport::StackMainLoop()
 {
-	SipStack* stack = SipStack::getInstance();
-	if (!stack->start()) {
+    SipStack* stack = SipStack::getInstance();
+    if (!stack->start()) {
 #ifndef NDEBUG
-		printf("Failed to start the stack!\n");
+        printf("Failed to start the stack!\n");
 #endif
-	}
+    }
 }
 
 void IMSTransport::RegThreadFunc()
@@ -826,18 +865,18 @@ void IMSTransport::RegThreadFunc()
     uint32_t expires = gwConsts::REGISTRATION_DEFAULT_EXPIRES;
     IMSTransport* ims = IMSTransport::GetInstance();
     while (ims->regCmdQueue.TryDequeue(expires)) {
-		if (ims->regSession) {
-			delete ims->regSession;
-		}
-		ims->regSession = new RegistrationSession(ims->stack);
-		ims->regSession->addCaps("+g.oma.sip-im");
-		ims->regSession->addCaps("+g.3gpp.smsip");
-		ims->regSession->addCaps("language", "\"zh,en\"");
-		qcc::String regReqLine("sip:");
-		regReqLine += ims->realm;
-		ims->regSession->setReqUri(regReqLine.c_str());
-		ims->regSession->setFromUri(ims->impu.c_str());
-		ims->regSession->setToUri(ims->impu.c_str());
+        if (ims->regSession) {
+            delete ims->regSession;
+        }
+        ims->regSession = new RegistrationSession(ims->stack);
+        ims->regSession->addCaps("+g.oma.sip-im");
+        ims->regSession->addCaps("+g.3gpp.smsip");
+        ims->regSession->addCaps("language", "\"zh,en\"");
+        qcc::String regReqLine("sip:");
+        regReqLine += ims->realm;
+        ims->regSession->setReqUri(regReqLine.c_str());
+        ims->regSession->setFromUri(ims->impu.c_str());
+        ims->regSession->setToUri(ims->impu.c_str());
 
         ims->regSession->setExpires(expires);
         if (!ims->regSession->register_()) {
@@ -847,11 +886,11 @@ void IMSTransport::RegThreadFunc()
 }
 
 /*
-void IMSTransport::SubFunc(void* para)
-{
+   void IMSTransport::SubFunc(void* para)
+   {
     qcc::String subAccount;
     IMSTransport* ims = (IMSTransport*)para;
-    
+
     std::map<qcc::String, bool>::iterator itrSub = ims->subscriptions.begin();
     while (itrSub != ims->subscriptions.end()) {
         if (!itrSub->second) {
@@ -859,12 +898,12 @@ void IMSTransport::SubFunc(void* para)
         }
         itrSub++;
     }
-}
-*/
+   }
+ */
 
 /*
-void IMSTransport::HeartBeatFunc(void* para)
-{
+   void IMSTransport::HeartBeatFunc(void* para)
+   {
     static bool restartOpSession = false;
     IMSTransport* ims = (IMSTransport*)para;
     if (!ims) {
@@ -903,8 +942,8 @@ void IMSTransport::HeartBeatFunc(void* para)
         }
 
     }
-}
-*/
+   }
+ */
 
 
 void IMSTransport::SubTimerAlarmListener::AlarmTriggered(const qcc::Alarm& alarm, QStatus reason)
