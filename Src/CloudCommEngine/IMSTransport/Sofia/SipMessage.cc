@@ -1,24 +1,36 @@
 /******************************************************************************
- * Copyright (c) 2014-2015, AllSeen Alliance. All rights reserved.
+ *  *    Copyright (c) Open Connectivity Foundation (OCF) and AllJoyn Open
+ *    Source Project (AJOSP) Contributors and others.
  *
- *    Permission to use, copy, modify, and/or distribute this software for any
- *    purpose with or without fee is hereby granted, provided that the above
- *    copyright notice and this permission notice appear in all copies.
+ *    SPDX-License-Identifier: Apache-2.0
  *
- *    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- *    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- *    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- *    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- *    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- *    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *    All rights reserved. This program and the accompanying materials are
+ *    made available under the terms of the Apache License, Version 2.0
+ *    which accompanies this distribution, and is available at
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Copyright (c) Open Connectivity Foundation and Contributors to AllSeen
+ *    Alliance. All rights reserved.
+ *
+ *    Permission to use, copy, modify, and/or distribute this software for
+ *    any purpose with or without fee is hereby granted, provided that the
+ *    above copyright notice and this permission notice appear in all
+ *    copies.
+ *
+ *     THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+ *     WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+ *     WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+ *     AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ *     DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ *     PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ *     TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ *     PERFORMANCE OF THIS SOFTWARE.
  ******************************************************************************/
 
 #include "SipMessage.h"
 
-class SipE2eMessageHelper
-{
-public:
+class SipE2eMessageHelper {
+  public:
     bool foundValue(const char* const s, const char* const name, char* val)
     { // strtok is not allowed in this routine
         const char* p = s;
@@ -57,7 +69,7 @@ public:
 };
 
 SipMessage::SipMessage(SipE2eContext* _ssc, const sip_t* _msg) :
-        ssc(_ssc), msg(_msg)
+    ssc(_ssc), msg(_msg)
 {
 }
 
@@ -67,7 +79,7 @@ SipMessage::~SipMessage()
 
 bool SipMessage::isValid()
 {
-	return (NULL != msg);
+    return (NULL != msg);
 }
 
 sip_method_t SipMessage::getRequestType()
@@ -101,27 +113,29 @@ char* SipMessage::getSipHeaderValue(const char* name, unsigned index /*= 0*/)
             return (char*) msg->sip_to->a_common->h_data; // always nullptr
         }
     } else if (strcmp(name, "Service-Route") == 0) {
-		if (msg->sip_service_route) {
-			return url_as_string(ssc->sip_home, msg->sip_service_route->r_url);
-		}
-	}
+        if (msg->sip_service_route) {
+            return url_as_string(ssc->sip_home, msg->sip_service_route->r_url);
+        }
+    }
     return nullptr;
 }
 
-char* SipMessage::getSipHeaderParamValue(const char* name, const char* param,
-        unsigned index /*= 0*/)
+char* SipMessage::getSipHeaderParamValue(
+    const char* name,
+    const char* param,
+    unsigned index /*= 0*/)
 {
     SipE2eMessageHelper mh;
     if (strcmp(name, "From") == 0 || strcmp(name, "f") == 0) {
         if (msg->sip_from) {
-            msg_param_t const * p = msg->sip_from->a_params;
+            msg_param_t const* p = msg->sip_from->a_params;
             if (p) {
                 return mh.getParamValue(*p, param);
             }
         }
     } else if (strcasecmp(name, "To") == 0 || strcmp(name, "t") == 0) {
         if (msg->sip_to) {
-            msg_param_t const * p = msg->sip_to->a_params;
+            msg_param_t const* p = msg->sip_to->a_params;
             if (p) {
                 return mh.getParamValue(*p, param);
             }
