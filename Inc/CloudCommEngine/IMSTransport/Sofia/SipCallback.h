@@ -1,17 +1,30 @@
 /******************************************************************************
- * Copyright (c) 2014-2015, AllSeen Alliance. All rights reserved.
+ * Copyright (c) Open Connectivity Foundation (OCF) and AllJoyn Open
+ *    Source Project (AJOSP) Contributors and others.
  *
- *    Permission to use, copy, modify, and/or distribute this software for any
- *    purpose with or without fee is hereby granted, provided that the above
- *    copyright notice and this permission notice appear in all copies.
+ *    SPDX-License-Identifier: Apache-2.0
  *
- *    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- *    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- *    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- *    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- *    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- *    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *    All rights reserved. This program and the accompanying materials are
+ *    made available under the terms of the Apache License, Version 2.0
+ *    which accompanies this distribution, and is available at
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Copyright (c) Open Connectivity Foundation and Contributors to AllSeen
+ *    Alliance. All rights reserved.
+ *
+ *    Permission to use, copy, modify, and/or distribute this software for
+ *    any purpose with or without fee is hereby granted, provided that the
+ *    above copyright notice and this permission notice appear in all
+ *    copies.
+ *
+ *     THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+ *     WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+ *     WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+ *     AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ *     DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ *     PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ *     TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ *     PERFORMANCE OF THIS SOFTWARE.
  ******************************************************************************/
 
 #ifndef SIPCALLBACK_H__
@@ -23,89 +36,78 @@
 #include "SipSession.h"
 #include <sofia-sip/nua.h>
 
-
-class SOFIA_IMS_EXPORT_FUN SipEvent
-{
-public:
+class SOFIA_IMS_EXPORT_FUN SipEvent {
+  public:
     SipEvent(SipE2eSofiaEvent* ev);
-	/**
-	 * Create a SipMessage which should be released after use by the caller
-	 * @param - 
-	 */
-	SipMessage* GetSipMessage() const;
-	nua_event_t GetType() const;
-	int GetStatus() const;
-protected:
+    /**
+     * Create a SipMessage which should be released after use by the caller
+     * @param -
+     */
+    SipMessage* GetSipMessage() const;
+    nua_event_t GetType() const;
+    int GetStatus() const;
+
+  protected:
     SipE2eSofiaEvent* ev;
 
 };
 
-class SOFIA_IMS_EXPORT_FUN StackEvent: public SipEvent
-{
-public:
+class SOFIA_IMS_EXPORT_FUN StackEvent : public SipEvent {
+  public:
     StackEvent(SipE2eSofiaEvent* ev);
 };
-class SOFIA_IMS_EXPORT_FUN DialogEvent: public SipEvent
-{
-public:
+
+class SOFIA_IMS_EXPORT_FUN DialogEvent : public SipEvent {
+  public:
     DialogEvent(SipE2eSofiaEvent* ev);
 };
 
-class SOFIA_IMS_EXPORT_FUN InviteEvent: public SipEvent
-{
-public:
+class SOFIA_IMS_EXPORT_FUN InviteEvent : public SipEvent {
+  public:
     InviteEvent(SipE2eSofiaEvent* ev);
 };
 
-class SOFIA_IMS_EXPORT_FUN MessagingEvent: public SipEvent
-{
-public:
+class SOFIA_IMS_EXPORT_FUN MessagingEvent : public SipEvent {
+  public:
     MessagingEvent(SipE2eSofiaEvent* ev);
-	MessagingSession* GetSession(SipStack* stack);
+    MessagingSession* GetSession(SipStack* stack);
     bool is_incoming;
 };
 
-class SOFIA_IMS_EXPORT_FUN InfoEvent: public SipEvent
-{
-public:
+class SOFIA_IMS_EXPORT_FUN InfoEvent : public SipEvent {
+  public:
     InfoEvent(SipE2eSofiaEvent* ev);
 };
 
-class SOFIA_IMS_EXPORT_FUN OptionsEvent: public SipEvent
-{
-public:
+class SOFIA_IMS_EXPORT_FUN OptionsEvent : public SipEvent {
+  public:
     OptionsEvent(SipE2eSofiaEvent* ev);
-	OptionsSession* GetSession(SipStack* stack);
+    OptionsSession* GetSession(SipStack* stack);
 };
 
-class SOFIA_IMS_EXPORT_FUN PublicationEvent: public SipEvent
-{
-public:
+class SOFIA_IMS_EXPORT_FUN PublicationEvent : public SipEvent {
+  public:
     PublicationEvent(SipE2eSofiaEvent* ev);
 };
 
-class SOFIA_IMS_EXPORT_FUN RegistrationEvent: public SipEvent
-{
-public:
+class SOFIA_IMS_EXPORT_FUN RegistrationEvent : public SipEvent {
+  public:
     RegistrationEvent(SipE2eSofiaEvent* ev);
 };
 
-class SOFIA_IMS_EXPORT_FUN SubscriptionEvent: public SipEvent
-{
-public:
+class SOFIA_IMS_EXPORT_FUN SubscriptionEvent : public SipEvent {
+  public:
     SubscriptionEvent(SipE2eSofiaEvent* ev);
 };
 
-class SOFIA_IMS_EXPORT_FUN NotifyEvent: public SipEvent
-{
-public:
+class SOFIA_IMS_EXPORT_FUN NotifyEvent : public SipEvent {
+  public:
     NotifyEvent(SipE2eSofiaEvent* ev);
     bool is_incoming; // always true
 };
 
-class SOFIA_IMS_EXPORT_FUN SipCallback
-{
-public:
+class SOFIA_IMS_EXPORT_FUN SipCallback {
+  public:
     SipCallback()
     {
     }
@@ -157,9 +159,6 @@ public:
     {
         return -1;
     }
-
-private:
-
 };
 
 #endif
